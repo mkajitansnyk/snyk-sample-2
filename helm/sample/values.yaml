@@ -1,0 +1,140 @@
+# Default values for helm chart.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+environment: "production"
+
+api:
+  enabled: true
+  image:
+    repository: api:local
+    pullPolicy: IfNotPresent
+    tag: null
+  service:
+    type: ClusterIP
+    port: 5000
+
+# ------------------------------------------------------------------------------------------------
+# Define the publically accessable URLs for the app
+# ------------------------------------------------------------------------------------------------
+ingress:
+  enabled: true
+  hosts:
+    - host: sample.127.0.0.1.nip.io
+  tls: []
+  annotations:
+    # Increase the maximum request body size
+    nginx.ingress.kubernetes.io/proxy-body-size: "50m"
+    nginx.ingress.kubernetes.io/proxy-request-buffering: "off"
+    nginx.ingress.kubernetes.io/configuration-snippet: |
+      auth_request_set $token  $upstream_http_x_auth_request_access_token;
+      proxy_set_header X-Access-Token $token;
+
+# Declare the login provider (eg: generic studio login)
+oauth2:
+  enabled: true
+
+  # Use a secret to mount client credentials for the environment
+  configuration:
+    existingSecret: oauth2-proxy
+
+  # The following ENV vars gets defined (per environment)
+  extraArgs:
+    # The first few settings needs to be defined per environment
+    # - Note: 'redirect-url' should be the first argument (gets replaced by pull requests)...
+    - --redirect-url=https://sample.127.0.0.1.nip.io/oauth2/callback
+    - --whitelist-domain=.127.0.0.1.nip.io,login.microsoftonline.com
+    - --cookie-domain=.127.0.0.1.nip.io
+    - --cookie-name=sample_oauth2
+    # Define the (discoverable) OAuth2 login provider (and extra Issuers for external integrations)
+    #- --oidc-issuer-url=https://login.microsoftonline.com/xxxx-xxxx-xxxx-xxx-xxxx/v2.0
+    #- --extra-jwt-issuers="https://login.microsoftonline.com/xxxx-xxxx-xxxx-xxxx-xxxx/v2.0=yyyy"
+    # Apply additional defaults (everything below)
+    - --cookie-secure=true
+    - --email-domain="*"
+    - --scope=openid
+    - --provider=oidc
+    # Ensure the token header is available
+    - --pass-access-token=true
+    - --set-xauthrequest=true
+    - --set-authorization-header=false
+    # Allow external apps (like cypress) to pass through with valid auth tokens headers, set by 'extra-jwt-issuers'.
+    - --skip-jwt-bearer-tokens=true
+    - --skip-provider-button=true
+    # Set additional defaults
+    - --silence-ping-logging=true
+    - --reverse-proxy=true
+
+  # Container could be running with outdated image
+  # - https://snyk.io/security-rules/SNYK-CC-K8S-42
+  image:
+    pullPolicy: Always
+
+  # Containers should run with AppArmor profiles enabled for security reasons
+  # - https://snyk.io/security-rules/SNYK-CC-K8S-32
+  commonAnnotations:
+    container.apparmor.security.beta.kubernetes.io/oauth2-proxy: runtime/default
+
+  # Persist JWT tokens, using an (in-memory-cached) redis database
+  # Motivation: This is required when using login providers (such as Azure AD),
+  # because otherwise the auth cookie would be too large (as a req/resp header)!
+  redis:
+    auth:
+      existingSecret: oauth2-proxy
+    # Containers should run with AppArmor profiles enabled for security reasons
+    # - https://snyk.io/security-rules/SNYK-CC-K8S-32
+    commonAnnotations:
+      container.apparmor.security.beta.kubernetes.io/redis: runtime/default
+    master:
+      # Adding specific security tweaks as reccomended by Snyk IaC tests
+      # - https://snyk.io/security-rules/SNYK-CC-K8S-6
+      # - https://snyk.io/security-rules/SNYK-CC-K8S-8
+      # - https://snyk.io/security-rules/SNYK-CC-K8S-9
+      containerSecurityContext:
+        readOnlyRootFilesystem: true
+        allowPrivilegeEscalation: false
+        capabilities:
+          drop: [ALL]
+          add: []
+      # Container should run with memory limit for security reasons
+      # - https://snyk.io/security-rules/SNYK-CC-K8S-4
+      resources:
+        requests:
+          memory: 16Mi
+          cpu: 10m
+        limits:
+          memory: 512Mi
+          cpu: 200m
+
+  # Containers should run with restricted security context
+  # - https://snyk.io/security-rules/SNYK-CC-K8S-6
+  # - https://snyk.io/security-rules/SNYK-CC-K8S-9
+  containerSecurityContext:
+    runAsNonRoot: true
+    readOnlyRootFilesystem: true
+    allowPrivilegeEscalation: false
+    capabilities:
+      drop: [ALL]
+      add: []
+
+  # Container should run with memory limit for security reasons
+  # - https://snyk.io/security-rules/SNYK-CC-K8S-4
+  resources:
+    requests:
+      cpu: 100m
+      memory: 8Mi
+    limits:
+      cpu: 200m
+      memory: 512Mi
+
+# Can be used to specify credentials when pulling docker images
+imagePullSecrets: []
+
+# Other settings
+replicaCount: 1
+nameOverride: ""
+fullnameOverride: ""
+nodeSelector: {}
+tolerations: []
+affinity: {}
+
+resources: {}

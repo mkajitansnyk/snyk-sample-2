@@ -1,0 +1,11 @@
+{
+  "extends": "@tsconfig/node14",
+  "include": ["./src/**/*", "./scripts/**/*", "./data/**/*", "./shared/**/*"],
+  "exclude": ["node_modules"],
+  "compilerOptions": {
+    "outDir": "./dist",
+    "experimentalDecorators": true,
+    "strictPropertyInitialization": false,
+    "emitDecoratorMetadata": true
+  }
+}

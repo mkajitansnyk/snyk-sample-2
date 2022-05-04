@@ -1,0 +1,102 @@
+{{- if .Values.api.enabled }}
+{{- $hostObj := index .Values.ingress.hosts 0 -}}
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "utils.fullname" . }}-api
+  annotations:    
+    # SNYK-CC-K8S-32: Containers should run with AppArmor profiles enabled for security reasons
+    container.apparmor.security.beta.kubernetes.io/{{ include "utils.fullname" . }}-api: runtime/default
+  labels:
+{{ include "utils.labels" . | indent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ include "utils.name" . }}-api
+      app.kubernetes.io/instance: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: {{ include "utils.name" . }}-api
+        app.kubernetes.io/instance: {{ .Release.Name }}
+    spec:
+    {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+      containers:
+        - name: {{ .Chart.Name }}-api
+          image: "{{ .Values.api.image.repository }}{{- if .Values.api.image.tag }}:{{ .Values.api.image.tag }}{{- end }}"
+          imagePullPolicy: {{ .Values.api.image.pullPolicy }}
+          securityContext:                      # Apply security policies
+            runAsUser: 1000                     # <-- cat /etc/passwd | grep node
+            runAsNonRoot: true                  # <-- Disable root user
+            allowPrivilegeEscalation: false     # <-- Prevent sudo command
+            capabilities:                       # <-- Drop all kernal privileges except allowed
+              drop: ["ALL"]
+            readOnlyRootFilesystem: true        # <-- Prevent changing of OS filesystem
+          env:
+            - name: NODE_ENV
+              value: {{ .Values.environment }}
+            - name: VERSION
+              value: {{ .Chart.Version }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.api.service.port }}
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /api/healthcheck
+              port: http
+            initialDelaySeconds: 30
+            periodSeconds: 30
+            timeoutSeconds: 5
+            failureThreshold: 5
+          readinessProbe:
+            httpGet:
+              path: /api/healthcheck
+              port: http
+            initialDelaySeconds: 30
+            periodSeconds: 30
+            timeoutSeconds: 5
+            failureThreshold: 5
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+    {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+    {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+
+
+---
+
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "utils.fullname" . }}-api
+  labels:
+{{ include "utils.labels" . | indent 4 }}-api
+spec:
+  type: {{ .Values.api.service.type }}
+  ports:
+    - port: {{ .Values.api.service.port }}
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector:
+    app.kubernetes.io/name: {{ include "utils.name" . }}-api
+    app.kubernetes.io/instance: {{ .Release.Name }}
+
+
+{{- end }}

@@ -1,0 +1,4 @@
+environment: dev
+
+oauth2:
+  enabled: false

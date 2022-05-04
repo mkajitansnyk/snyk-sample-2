@@ -1,0 +1,55 @@
+# Snyk (https://snyk.io) policy file, patches or ignores known vulnerabilities.
+version: v1.22.1
+# ignores vulnerabilities until expiry date; change duration by modifying expiry date
+ignore:
+  SNYK-JS-CSSWHAT-1298035:
+    - react-scripts > *:
+        reason: Ignore react-scripts dev dependency warnings...
+        expires: 2022-10-10T00:00:00.000Z
+        created: 2021-07-20T11:26:35.862Z
+  SNYK-JS-FASTIFYSTATIC-1728398:
+    - '*':
+        reason: Needs to be updated in fastify-swagger
+        expires: 2022-11-17T11:31:09.574Z
+        created: 2021-10-18T11:31:09.578Z
+  SNYK-JS-ANSIREGEX-1583908:
+    - '*':
+        reason: Needs to be updated in @cucumber/cucumber
+        expires: 2022-11-17T11:32:28.254Z
+        created: 2021-10-18T11:32:28.259Z
+  SNYK-JS-NTHCHECK-1586032:
+    - '*':
+        reason: Ignored until fix is found.
+        expires: 2022-11-17T11:32:28.254Z
+        created: 2021-10-18T11:32:28.259Z
+  SNYK-JS-RAMDA-1582370:
+    - '*':
+        reason: Ignored until fix is found.
+        expires: 2022-11-17T11:32:28.254Z
+        created: 2021-10-18T11:32:28.259Z
+  SNYK-JS-XLSX-1311137:
+    - '*':
+        reason: Ignored until fix is found.
+        expires: 2022-11-17T11:32:28.254Z
+        created: 2021-10-18T11:32:28.259Z
+  SNYK-JS-XLSX-1311139:
+    - '*':
+        reason: Ignored until fix is found.
+        expires: 2022-11-17T11:32:28.254Z
+        created: 2021-10-18T11:32:28.259Z
+  SNYK-JS-XLSX-1311141:
+    - '*':
+        reason: Ignored until fix is found.
+        expires: 2022-11-17T11:32:28.254Z
+        created: 2021-10-18T11:32:28.259Z
+  SNYK-JS-YARGSPARSER-560381:
+    - '*':
+        reason: Ignored until fix is found.
+        expires: 2022-11-17T11:32:28.254Z
+        created: 2021-10-18T11:32:28.259Z
+  SNYK-JS-ASYNC-2441827:
+    - '*':
+        reason: Ignored until fix is found.
+        expires: 2022-11-17T11:32:28.254Z
+        created: 2021-10-18T11:32:28.259Z
+patch: {}

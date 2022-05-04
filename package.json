@@ -1,0 +1,31 @@
+{
+  "name": "snyk-sample",
+  "version": "0.0.1",
+  "private": true,
+  "workspaces": [
+    "packages/api"
+  ],
+  "dependencies": {
+    "typescript": "4.4.4"
+  },
+  "scripts": {
+    "start": "yarn workspace api start"
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  },
+  "devDependencies": {
+    "babel-plugin-formatjs": "^10.3.3",
+    "eslint": "^7.32.0",
+    "husky": "^7.0.1"
+  }
+}

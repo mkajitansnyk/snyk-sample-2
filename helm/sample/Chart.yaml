@@ -1,0 +1,11 @@
+apiVersion: v2
+appVersion: 1.16.0
+description: Sample Helm Chart
+name: sample-chart
+version: 0.0.4
+dependencies:
+  - alias: oauth2
+    condition: oauth2.enabled
+    name: oauth2-proxy
+    repository: "@bitnami"
+    version: 0.1.5
